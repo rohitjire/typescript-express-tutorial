@@ -1,5 +1,6 @@
 import express = require('express')
 import Controller from 'interfaces/controller.interface'
+import errorMiddleware from 'middleware/error.middleware'
 import mongoose = require('mongoose')
 
 
@@ -15,10 +16,15 @@ class App{
         this.connectToDatabase()
         this.initializeMiddleware()
         this.initializeControllers(controllers)
+        this.initializeErrorHandling()
     }
 
     private initializeMiddleware(){
         this.app.use(express.json())
+    }
+
+    private initializeErrorHandling(){
+        this.app.use(errorMiddleware)
     }
     
     private initializeControllers(controllers: Controller[]){

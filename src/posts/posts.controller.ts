@@ -1,3 +1,5 @@
+import HttpException from 'exceptions/httpException'
+import PostNotFoundException from 'exceptions/PostNotFoundException'
 import express = require('express')
 import Post from './post.interface'
 import postModel from './post.models'
@@ -33,31 +35,40 @@ class PostController{
 
         const createdPost = new postModel(postData)
         createdPost.save()
-        .then(savePost=>{
-          response.send(savePost)
+        .then(savedPost=>{
+          response.send(savedPost)
         })
       }
 
-    private getPostById(request: express.Request, response: express.Response){
+    private getPostById(request: express.Request, response: express.Response, next: express.NextFunction){
       const id = request.params.id
       this.posts.findById(id)
       .then(post =>{
-        response.send(post)
+        if(post){
+          response.send(post)
+        }else {
+          next(new PostNotFoundException(id) )
+        }
       })
     }
 
-    private modifyPost(request: express.Request, response: express.Response){
+    private modifyPost(request: express.Request, response: express.Response, next: express.NextFunction){
       const id = request.params.id
       const postData: Post = request.body
       this.posts.findByIdAndUpdate(id, postData, {new: true})
       .then(
         post=>{
-          response.send(post)
+          if(post){
+            response.send(post)
+          }else{
+            next(new PostNotFoundException(id))
+          }
+
         }
       )     
     }
 
-  private deletePost(request: express.Request, response: express.Response){
+  private deletePost(request: express.Request, response: express.Response, next: express.NextFunction){
     const id = request.params.id
     this.posts.findByIdAndDelete(id)
     .then(successResponse =>{
@@ -65,15 +76,11 @@ class PostController{
         response.send(200)
       }
       else{
-        response.send(404)
+        next(new PostNotFoundException(id))
       }
     })
   }
 
-
-
-
-
-    }
+  }
 
 export default PostController
